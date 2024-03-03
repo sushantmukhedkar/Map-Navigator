@@ -1,0 +1,125 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google map</title>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <script
+        src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet"
+        href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css"
+        type="text/css">
+    <div class="dashboard">
+        <div class="name">
+            Like our Google Map
+        </div>
+        <div id="details">
+            <h4>Infection Level</h4>
+            <h4>
+                <span id="stats1"></span> &rsaquo; 800
+            </h4>
+            <h4>
+                <span id="stats2"></span> &rsaquo; 400 & &lsaquo; 800
+            </h4>
+            <h4>
+                <span id="stats3"></span> &lsaquo; 400
+            </h4>
+
+        </div>
+    </div>
+
+    <div id='map'></div>
+</body>
+<script>
+    let access_token = 'pk.eyJ1Ijoic3VzaGFudDc4MDMiLCJhIjoiY2xyaXowMmx2MDh2eTJwcXFmamU0dGt1ZyJ9.nD1_kI6J2B9xDxSeZATblw';
+    // access token
+    mapboxgl.accessToken = access_token;
+
+    // creating a map object
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        // center: [77.320953, 19.138250],
+        center: [77.292066915344, 19.112738099388025],
+        zoom: 11,
+        showPlaceLabels:true,
+        showRoadLabels:true
+        // 19.112738099388025, 77.292066915344
+    });
+
+    // when map loads, it fires a callback function
+    map.on('load', () => {
+        map.addLayer({
+            id: 'terrain-data',
+            type: 'line',
+            source: {
+                type: 'vector',
+                url: 'mapbox://mapbox.mapbox-terrain-v2'
+            },
+            'source-layer': 'contour'
+        });
+    });
+
+    const marker1 = new mapboxgl.Marker()
+        .setLngLat([77.292066915344, 19.112738099388025])
+        .addTo(map);
+
+    // searching a place
+    let query = 'Michigan Stadium';
+
+    class SessionToken {
+        constructor() {
+            this.id = generateUUID();
+        }
+    }
+
+    let country = 'US'
+    const token = new SessionToken();
+
+    // randomly generated session UUID
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0,
+                v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    let session_token = generateUUID();
+
+    // get all the details of the searched location
+    let promise = fetch(`https://api.mapbox.com/search/searchbox/v1/suggest?q=${query}?language=en&limit=1&session_token=${session_token}&proximity=-83.748708,42.265837&country=${country}&access_token=${access_token}`);
+
+    promise.then((data) => {
+        return data.json();
+    }).then((data) => {
+        console.log(data);
+    });
+
+    // Add the control to the map.
+    map.addControl(
+        new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl
+        })
+    );
+
+    // Add zoom and rotation controls to the map.
+    map.addControl(new mapboxgl.NavigationControl());
+    async function hotel(){
+        let p = fetch('https://api.mapbox.com/search/searchbox/v1/retrieve/dXJuOm1ieHJldDpJcEpoSENmQThEdlBwa2xzZERwQnpMT2ZtNlVtRW9KUVJ0ZkMzaDYwOXoxWFFGcmhVWDgzY2hQRzVoS2pseWJwUGVCZnI4LXJoZDM0eXIwZUJQQjRmVUtjQ19MRWFrS1UxNk9kcDFmVmxrWGNyZWZDQmc1clZ3Szg2cWVNdHdBa3NPWGdwY21qb1k5T1gzOWQ0Ti1aUnFtNHJ0aS1RbTd3UE02enAtQ3pISHRWRkhrSEVva1kybkd2WGFwTmk4elZkS0w5NDhROU9VcWRZZm5Bck9nUXZqaEpSUVhfNEFFZm1hTmgyTV8tRVFMRXh1c2FxeTZNX0FiRnY5UC1ZTDdYUHFMTGNyWkxUSEl1c1NYVkJXX3N2Nnh4MGtwM294MEczVExuaVpzdzBNcVVPcjFsZnJpRUxxQjdDZ2tOY19YRUQwNDZ1RmROdWxkcnpPZVFxTFZsRkJPX3JZN2Nhc2NjeEg5MDF5M0I0V0k4dmpoN3JvdHdkZkhTenFSVV9EQ01zS0ozdDhVakxfaXF4U0ZkbnA5cHVuNGkzS2p1RldZc3lYcWpTamlwYjNZLXZFWDZKcEwxSzZXQWg4cnlaY1gyWmEzNXVJYUJoVURaeUM0MGctdVA3QVZDZC1kME5GM0Z3bnBuRERlQVViWVBFTzNIckg3dXNJdndJeGRTZTR3SHEyQXhDVXVjS1FZNnpEbExqUWJFdndYV0xvVkhjSUhKVkhhS0RMYmV2OWxFMnRTQWxtY05jUzlQQi1vdmlBSE56enhHbWVkVFVtOTdfQV81ZUtvZThaY29Oekx1MEhOTTZiTW1GbmxtdVloT0N5V3lHV05QdzBiNDY0a3dRVUx3Q2Z0RmtHZElPbHpBV25GS0wzTmZrVUM0clpva0FCbkZKU0tFZGMxUHgwSFhxWjdHQXZXRjFiWFdlYktYWFJpcXpwMVNGcFNETkdHNDRyVE9fOThkS0o2ZDBlZ1ZFMzZyem4wQUJRWEJKSXF5UXlfc3luYlZTR01HSHE1dDNPbVptRERmRXdJOFJPMGxNVFdhMjZkSjFUeGFUR21GYlhPNG1DVmNySmVuY3FETWowdVFNS2trcTctWFdMVXFwOF9PbWhaTzlTY1RRdG53Ym9SYUpGN1BFWm4wRUhuVVBVd0RFVmllcUVfc1lCN1NsdXE0R3ctWFJNSEdFdXFvd2lfd0o3dUhrcFp6MVZDQU5HNEZzQXEzSDBJeUZBRXNRdEdQdzM0TDQ4NFBobm5aN010YTVCQTdESmdjb084dkQ0TGhjZ1lORVNReDRYbmtWTU1LVjc2TXF6SXBtOHJmaFR0a2JPUFc5Q3J4ZjhONUpOTjRXMWZTakNjVzdCcmxmVjFZd3o0OEcwbzZWdUdzbTZpS1lKZFBBRGwtbmRfV3k1SkpPNFN0WE5pYk1EZUlzcVo0Vk1GRmV0NnI1ekhMT0EwQVdZcXFhVGxEZG9EWFYzbjdPdWFsakNqNlVRdkVlck1aQ3hfR2dvSEtMTUZIZHNRT3ZLbUw3VUNCMUJlWl96MEdXS2w0WE1TMGNDaWtvZHZISi05dnFzSWtJVVdIRnZKblotWndMVWswbENfeElKcnRLcFBBT21GOW9TVkJVeVQ3U2xadGphZ0tJemRpR2FVbGJyVTJLZWJFeXZONUUyVzlUcmVPSEZpdkdaWDY3U1Y0Uzh3aEdEakExNWt0NklqcHo0ZXlfSEZhcXprbUlvbERLYlhTNzlLdWhlYi1yNkdQTXFHS19jLVJDTmhYMnZneGdOaW94dGItWU5KVmE3cXZLSmdNbDVTMHNEMHh5dWdzRloza1RUaEhzRDJ1N1J3Q1dhOFE4M0RGRGNnY3IxRWZ5OC1YU0hXbWgxNVZRNV9tOFlDVA==?session_token=0ca99a88-9262-40a1-88d8-9b5773c02465&access_token=pk.eyJ1Ijoic3VzaGFudDc4MDMiLCJhIjoiY2xyaXowMmx2MDh2eTJwcXFmamU0dGt1ZyJ9.nD1_kI6J2B9xDxSeZATblw')
+        let data = await p.json()
+        console.log(data)
+
+    }
+
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+</html>
